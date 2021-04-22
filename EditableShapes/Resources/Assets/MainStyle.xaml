@@ -4,7 +4,17 @@
                     xmlns:b="http://schemas.microsoft.com/xaml/behaviors">
     <DataTemplate DataType="{x:Type s:MyShape}">
         <Grid>
-            <Polyline Stroke="Red" StrokeThickness="1" Points="{Binding Points}"/>
+            <Polyline x:Name="Polyline" Stroke="Red" StrokeThickness="3" Points="{Binding Points}"  Visibility="Visible">
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseLeftButtonDown">
+                        <b:InvokeCommandAction
+                            Command="{Binding CloseShapeCommand}"
+                            PassEventArgsToCommand="True"
+                        />
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+            </Polyline>
+            <Polygon x:Name="Polygon" Points="{Binding Points}" Fill="Bisque" Visibility="Hidden"/>
             <ItemsControl Focusable="False">
                 <b:Interaction.Triggers>
                     <b:EventTrigger EventName="MouseLeftButtonDown">
@@ -35,6 +45,12 @@
                 </ItemsControl.ItemContainerStyle>
         </ItemsControl>
         </Grid>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsClosed}" Value="True">
+                <Setter TargetName="Polygon" Property="Visibility" Value="Visible"/>
+                <Setter TargetName="Polyline" Property="Visibility" Value="Hidden"/>
+            </DataTrigger>
+        </DataTemplate.Triggers>
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type s:ShapePoint}">
@@ -42,15 +58,15 @@
         <Grid Margin="-8 -8 0 0">
             <Ellipse Fill="{Binding Fill}" Height="16" Width="16"/>
             <Thumb Opacity="0">
-                    <b:Interaction.Triggers>
-                        <b:EventTrigger EventName="DragDelta">
-                            <b:InvokeCommandAction
-                                Command="{Binding OnDragCommand}"
-                                PassEventArgsToCommand="True"
-                            />
-                        </b:EventTrigger>
-                    </b:Interaction.Triggers> 
-                </Thumb>
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="DragDelta">
+                        <b:InvokeCommandAction
+                            Command="{Binding OnDragCommand}"
+                            PassEventArgsToCommand="True"
+                        />
+                    </b:EventTrigger>
+                </b:Interaction.Triggers> 
+            </Thumb>
         </Grid>
     </DataTemplate>
 </ResourceDictionary>
