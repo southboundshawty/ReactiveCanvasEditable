@@ -1,23 +1,26 @@
-﻿using EditableShapes.Commands;
-using EditableShapes.Models;
-
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using EditableShapes.Commands;
+using EditableShapes.Models;
 
 namespace EditableShapes.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
+        private ObservableCollection<MyShape> _myShapes;
+
+        private MyShape _selectedShape;
+
+        private ICommand onMapPressedCommand;
+
         public MainViewModel()
         {
             MyShapes = new ObservableCollection<MyShape>();
         }
-
-        private ObservableCollection<MyShape> _myShapes;
 
         public ObservableCollection<MyShape> MyShapes
         {
@@ -29,8 +32,6 @@ namespace EditableShapes.ViewModels
             }
         }
 
-        private MyShape _selectedShape;
-
         public MyShape SelectedShape
         {
             get => _selectedShape;
@@ -41,12 +42,11 @@ namespace EditableShapes.ViewModels
             }
         }
 
-        private ICommand onMapPressedCommand;
         public ICommand OnMapPressedCommand => onMapPressedCommand ??= new RelayCommand(OnMapPressed);
 
         private void OnMapPressed(object commandParameter)
         {
-            MouseButtonEventArgs e = ((MouseButtonEventArgs)commandParameter);
+            MouseButtonEventArgs e = (MouseButtonEventArgs) commandParameter;
 
             if (e.Source is Canvas source)
             {
@@ -54,7 +54,7 @@ namespace EditableShapes.ViewModels
 
                 if (SelectedShape is null)
                 {
-                    MyShapes.Add(new MyShape()
+                    MyShapes.Add(new MyShape
                     {
                         Fill = Brushes.Bisque
                     });
@@ -62,7 +62,7 @@ namespace EditableShapes.ViewModels
                     SelectedShape = MyShapes.FirstOrDefault();
                 }
 
-                SelectedShape?.ShapePoints.Add(new ShapePoint()
+                SelectedShape?.ShapePoints.Add(new ShapePoint
                 {
                     Fill = Brushes.DarkGreen,
                     Position = point

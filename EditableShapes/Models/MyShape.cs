@@ -1,9 +1,6 @@
-﻿using System.Collections.ObjectModel;
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using EditableShapes.Commands;
@@ -12,6 +9,20 @@ namespace EditableShapes.Models
 {
     public class MyShape : ObservableModel
     {
+        private Brush _fill;
+
+        private bool _isClosed;
+
+        private TrulyObservableCollection<ShapePoint> _shapePoints;
+
+        private double _X;
+
+        private double _y;
+
+        private ICommand closeShapeCommand;
+
+        private ICommand insertPointCommand;
+
         public MyShape()
         {
             ShapePoints = new TrulyObservableCollection<ShapePoint>();
@@ -19,16 +30,9 @@ namespace EditableShapes.Models
             ShapePoints.CollectionChanged += ShapePoints_CollectionChanged;
         }
 
-        private void ShapePoints_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        { 
-            OnPropertyChanged(nameof(Points));
-        }
-
-        private bool _isClosed;
-
         public bool IsClosed
         {
-            get { return _isClosed; }
+            get => _isClosed;
             set
             {
                 _isClosed = value;
@@ -36,19 +40,15 @@ namespace EditableShapes.Models
             }
         }
 
-        private double _x;
-
         public double X
         {
-            get => _x;
+            get => _X;
             set
             {
-                _x = value;
+                _X = value;
                 OnPropertyChanged();
             }
         }
-
-        private double _y;
 
         public double Y
         {
@@ -60,8 +60,6 @@ namespace EditableShapes.Models
             }
         }
 
-        private Brush _fill;
-
         public Brush Fill
         {
             get => _fill;
@@ -71,8 +69,6 @@ namespace EditableShapes.Models
                 OnPropertyChanged();
             }
         }
-
-        private TrulyObservableCollection<ShapePoint> _shapePoints;
 
         public TrulyObservableCollection<ShapePoint> ShapePoints
         {
@@ -86,14 +82,65 @@ namespace EditableShapes.Models
         }
 
         public PointCollection Points =>
-            new (ShapePoints.Select(p => p.Position));
+            new(ShapePoints.Select(p => p.Position));
 
-        private ICommand closeShapeCommand;
         public ICommand CloseShapeCommand => closeShapeCommand ??= new RelayCommand(CloseShape);
+        public ICommand InsertPointCommand => insertPointCommand ??= new RelayCommand(InsertPoint);
+
+        private void ShapePoints_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(Points));
+        }
 
         private void CloseShape(object commandParameter)
         {
             IsClosed = !IsClosed;
+        }
+
+        private void InsertPoint(object commandParameter)
+        {
+            MouseButtonEventArgs e = (MouseButtonEventArgs) commandParameter;
+
+            UIElement source = (UIElement) e.Source;
+
+            Point currentPoint = e.GetPosition(source);
+
+            for (int i = 0; i < ShapePoints.Count - 1; i++)
+            {
+                ShapePoint p1 = ShapePoints[i];
+                ShapePoint p2 = ShapePoints[i + 1];
+
+                bool isBetween = PointOnLine2D(p1.Position, p2.Position, currentPoint);
+
+                if (isBetween)
+                {
+                    int index = ShapePoints.IndexOf(p2);
+
+                    ShapePoints.Insert(index, new ShapePoint
+                    {
+                        Position = currentPoint,
+                        Fill = Brushes.Black
+                    });
+
+                    return;
+                }
+            }
+        }
+
+        public bool PointOnLine2D(Point p, Point a, Point b, float t = 1E+3f)
+        {
+            double zero = (b.X - a.X) * (p.Y - a.Y) - (p.X - a.X) * (b.Y - a.Y);
+
+            if (zero > t || zero < -t) return false;
+
+            if (a.X - b.X > t || b.X - a.X > t)
+                return a.X > b.X
+                    ? p.X + t > b.X && p.X - t < a.X
+                    : p.X + t > a.X && p.X - t < b.X;
+
+            return a.Y > b.Y
+                ? p.Y + t > b.Y && p.Y - t < a.Y
+                : p.Y + t > a.Y && p.Y - t < b.Y;
         }
     }
 }

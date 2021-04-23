@@ -1,15 +1,17 @@
-﻿using EditableShapes.Commands;
-
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using EditableShapes.Commands;
 
 namespace EditableShapes.Models
 {
     public class ShapePoint : ObservableModel
     {
+        private Brush _fill;
         private Point _position;
+
+        private ICommand onDragCommand;
 
         public Point Position
         {
@@ -21,8 +23,6 @@ namespace EditableShapes.Models
             }
         }
 
-        private Brush _fill;
-
         public Brush Fill
         {
             get => _fill;
@@ -33,14 +33,13 @@ namespace EditableShapes.Models
             }
         }
 
-        private ICommand onDragCommand;
         public ICommand OnDragCommand => onDragCommand ??= new RelayCommand(OnDrag);
 
         private void OnDrag(object commandParameter)
         {
-            DragDeltaEventArgs e = ((DragDeltaEventArgs)commandParameter);
+            DragDeltaEventArgs e = (DragDeltaEventArgs) commandParameter;
 
-            ShapePoint n = (ShapePoint)((FrameworkElement)e.Source).DataContext;
+            ShapePoint n = (ShapePoint) ((FrameworkElement) e.Source).DataContext;
 
             double x = n.Position.X + e.HorizontalChange;
             double y = n.Position.Y + e.VerticalChange;
