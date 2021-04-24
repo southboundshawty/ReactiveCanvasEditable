@@ -110,9 +110,9 @@ namespace EditableShapes.Models
                 ShapePoint p1 = ShapePoints[i];
                 ShapePoint p2 = ShapePoints[i + 1];
 
-                bool isBetween = PointOnLine2D(p1.Position, p2.Position, currentPoint);
+                bool isBetweenAndOnLine = IsPointBetween(p1.Position, p2.Position, currentPoint) && IsPointOnLine(p1.Position, p2.Position, currentPoint);
 
-                if (isBetween)
+                if (isBetweenAndOnLine)
                 {
                     int index = ShapePoints.IndexOf(p2);
 
@@ -127,20 +127,29 @@ namespace EditableShapes.Models
             }
         }
 
-        public bool PointOnLine2D(Point p, Point a, Point b, float t = 1E+3f)
+        public bool IsPointBetween(Point p1, Point p2, Point p3)
         {
-            double zero = (b.X - a.X) * (p.Y - a.Y) - (p.X - a.X) * (b.Y - a.Y);
+            double zero = (p3.X - p1.X) * (p3.X - p2.X) + (p3.Y - p1.Y) * (p3.Y - p2.Y);
 
-            if (zero > t || zero < -t) return false;
+            return (zero < 0);
+        }
 
-            if (a.X - b.X > t || b.X - a.X > t)
-                return a.X > b.X
-                    ? p.X + t > b.X && p.X - t < a.X
-                    : p.X + t > a.X && p.X - t < b.X;
+        public bool IsPointOnLine(Point p1, Point p2, Point p3, float t = 1E+3f)
+        {
+            double zero = (p3.X - p2.X) * (p1.Y - p2.Y) - (p1.X - p2.X) * (p3.Y - p2.Y);
 
-            return a.Y > b.Y
-                ? p.Y + t > b.Y && p.Y - t < a.Y
-                : p.Y + t > a.Y && p.Y - t < b.Y;
+            if (zero > t || zero < -t) 
+                return false;
+
+            if (p2.X - p3.X > t || p3.X - p2.X > t)
+                return p2.X > p3.X
+                    ? p1.X + t > p3.X && p1.X - t < p2.X
+                    : p1.X + t > p2.X && p1.X - t < p3.X;
+
+            return p2.Y > p3.Y
+                ? p1.Y + t > p3.Y && p1.Y - t < p2.Y
+                : p1.Y + t > p2.Y && p1.Y - t < p3.Y;
         }
     }
-}
+}     
+      
