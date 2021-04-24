@@ -11,7 +11,14 @@
         <viewmodels:MainViewModel />
     </Window.DataContext>
     <Grid>
-        <ItemsControl Name="CanvasList" Focusable="False">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+        <Viewbox>
+            <Grid>
+                <Image Source="{Binding Map}" Stretch="None" SnapsToDevicePixels="True"/>
+        <ItemsControl Grid.Column="0" Name="CanvasList" Focusable="False">
             <ItemsControl.Resources>
                 <CollectionViewSource x:Key="Shapes" Source="{Binding MyShapes}" />
             </ItemsControl.Resources>
@@ -54,5 +61,11 @@
                 </Style>
             </ItemsControl.ItemContainerStyle>
         </ItemsControl>
+            </Grid>
+        </Viewbox>
+        <StackPanel Grid.Column="1">
+            <Button Content="Загрузить картинку" Command="{Binding BrowseMapCommand}" Margin="4" Padding="4"/>
+            <Button Content="Распознать области" Command="{Binding RecognizeShapesCommand}" Margin="4" Padding="4"/>
+        </StackPanel>
     </Grid>
 </Window>
