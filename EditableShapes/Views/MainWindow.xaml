@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewmodels="clr-namespace:EditableShapes.ViewModels"
-        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors" d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Window.DataContext>
@@ -12,6 +12,7 @@
     </Window.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
@@ -63,9 +64,20 @@
         </ItemsControl>
             </Grid>
         </Viewbox>
-        <StackPanel Grid.Column="1">
+        <Viewbox Grid.Column="1">
+            <Grid>
+                <Image Source="{Binding GrayMap}" Stretch="None"/>
+            </Grid>
+        </Viewbox>
+        <StackPanel Grid.Column="2">
             <Button Content="Загрузить картинку" Command="{Binding BrowseMapCommand}" Margin="4" Padding="4"/>
             <Button Content="Распознать области" Command="{Binding RecognizeShapesCommand}" Margin="4" Padding="4"/>
+            <TextBlock Text="KernelGauss"/>
+            <TextBox Text="{Binding KernelGauss}"/>
+            <TextBlock Text="GrayIntensity"/>
+            <TextBox Text="{Binding GrayIntensity}"/> 
+            <TextBlock Text="MagicNumber"/>
+            <TextBox Text="{Binding MagicNumber}"/>
         </StackPanel>
     </Grid>
 </Window>
