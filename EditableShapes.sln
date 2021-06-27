@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.31129.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EditableShapes", "EditableShapes\EditableShapes.csproj", "{CF3C6442-E09C-4639-8080-CBD03BBC5418}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalRTestServer", "SignalRTestServer\SignalRTestServer.csproj", "{63AD991D-17C7-4A01-8655-02815EF7D87A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,14 @@ Global
 		{CF3C6442-E09C-4639-8080-CBD03BBC5418}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CF3C6442-E09C-4639-8080-CBD03BBC5418}.Release|x64.ActiveCfg = Release|x64
 		{CF3C6442-E09C-4639-8080-CBD03BBC5418}.Release|x64.Build.0 = Release|x64
+		{63AD991D-17C7-4A01-8655-02815EF7D87A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63AD991D-17C7-4A01-8655-02815EF7D87A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63AD991D-17C7-4A01-8655-02815EF7D87A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{63AD991D-17C7-4A01-8655-02815EF7D87A}.Debug|x64.Build.0 = Debug|Any CPU
+		{63AD991D-17C7-4A01-8655-02815EF7D87A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63AD991D-17C7-4A01-8655-02815EF7D87A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63AD991D-17C7-4A01-8655-02815EF7D87A}.Release|x64.ActiveCfg = Release|Any CPU
+		{63AD991D-17C7-4A01-8655-02815EF7D87A}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

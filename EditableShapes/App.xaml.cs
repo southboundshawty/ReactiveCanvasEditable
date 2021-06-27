@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using EditableShapes.Hubs;
 
 namespace EditableShapes
 {
@@ -7,5 +8,9 @@ namespace EditableShapes
     /// </summary>
     public partial class App : Application
     {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+        }
     }
 }

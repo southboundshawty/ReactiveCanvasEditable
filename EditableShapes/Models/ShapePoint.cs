@@ -2,16 +2,43 @@
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using EditableShapes.Api;
 using EditableShapes.Commands;
+using EditableShapes.Models.Dto;
 
 namespace EditableShapes.Models
 {
     public class ShapePoint : ObservableModel
     {
+        private int _id;
+
+        public int Id
+        {
+            get => _id;
+            set
+            {
+                _id = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private int _areaId;
+
+        public int AreaId
+        {
+            get => _areaId;
+            set
+            {
+                _areaId = value;
+                OnPropertyChanged();
+            }
+        }
+
         private Brush _fill;
         private Point _position;
 
         private ICommand onDragCommand;
+        private ICommand onDragCompletedCommand;
 
         public Point Position
         {
@@ -35,7 +62,14 @@ namespace EditableShapes.Models
 
         public ICommand OnDragCommand => onDragCommand ??= new RelayCommand(OnDrag);
 
-        private void OnDrag(object commandParameter)
+        public ICommand OnDragCompletedCommand => onDragCompletedCommand ??= new RelayCommand(OnDragCompleted);
+
+        private async void OnDragCompleted(object obj)
+        {
+          
+        }
+
+        private async void OnDrag(object commandParameter)
         {
             DragDeltaEventArgs e = (DragDeltaEventArgs) commandParameter;
 
@@ -45,6 +79,16 @@ namespace EditableShapes.Models
             double y = n.Position.Y + e.VerticalChange;
 
             n.Position = new Point(x, y);
+
+            using AreaPointApi areaPointApi = new();
+
+            await areaPointApi.UpdateAsync(new AreaPointDto()
+            {
+                Id = Id,
+                AreaId = AreaId,
+                X = (int)Position.X,
+                Y = (int)Position.Y
+            });
         }
     }
 }

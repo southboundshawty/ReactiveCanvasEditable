@@ -3,12 +3,39 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using EditableShapes.Api;
 using EditableShapes.Commands;
+using EditableShapes.Hubs;
+using EditableShapes.Models.Dto;
 
 namespace EditableShapes.Models
 {
     public class MyShape : ObservableModel
     {
+        private int _id;
+
+        public int Id
+        {
+            get => _id;
+            set
+            {
+                _id = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _name;
+
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                _name = value;
+                OnPropertyChanged();
+            }
+        }
+
         private Brush _fill;
 
         private bool _isClosed;
@@ -21,6 +48,8 @@ namespace EditableShapes.Models
 
         private ICommand closeShapeCommand;
 
+        private ICommand deleteShapeCommand;
+
         private ICommand insertPointCommand;
 
         public MyShape()
@@ -28,6 +57,48 @@ namespace EditableShapes.Models
             ShapePoints = new TrulyObservableCollection<ShapePoint>();
 
             ShapePoints.CollectionChanged += ShapePoints_CollectionChanged;
+
+            _mapEntitiesHub = MapEntitiesHub.GetInstance();
+
+            _mapEntitiesHub.OnAreaPointReceived += _mapEntitiesHub_OnAreaPointReceived;
+
+            _mapEntitiesHub.OnAreaPointDeleted += _mapEntitiesHub_OnAreaPointDeleted;
+        }
+
+        private readonly MapEntitiesHub _mapEntitiesHub;
+
+        private void _mapEntitiesHub_OnAreaPointDeleted(AreaPointDto areaPointDto)
+        {
+            if (Id != areaPointDto.AreaId)
+                return;
+
+            ShapePoint firstAreaPoint = ShapePoints.FirstOrDefault(p => p.Id == areaPointDto.Id);
+
+            ShapePoints.Remove(firstAreaPoint);
+        }
+
+        private void _mapEntitiesHub_OnAreaPointReceived(AreaPointDto areaPointDto)
+        {
+            if(Id != areaPointDto.AreaId)
+                return;
+
+            ShapePoint shapePoint = new()
+            {
+                Id = areaPointDto.Id,
+                Position = new Point(areaPointDto.X, areaPointDto.Y),
+                AreaId = areaPointDto.AreaId
+            };
+
+            ShapePoint firstAreaPoint = ShapePoints.FirstOrDefault(p => p.Id == areaPointDto.Id);
+
+            if (firstAreaPoint is null)
+            {
+                ShapePoints.Add(shapePoint);
+            }
+            else
+            {
+                firstAreaPoint.Position = shapePoint.Position;
+            }
         }
 
         public bool IsClosed
@@ -84,7 +155,17 @@ namespace EditableShapes.Models
         public PointCollection Points =>
             new(ShapePoints.Select(p => p.Position));
 
+        public ICommand DeleteShapeCommand => deleteShapeCommand ??= new RelayCommand(DeleteShape);
+
         public ICommand CloseShapeCommand => closeShapeCommand ??= new RelayCommand(CloseShape);
+
+        private async void DeleteShape(object obj)
+        {
+            using AreaApi areaApi = new();
+
+            await areaApi.DeleteAsync(Id);
+        }
+
         public ICommand InsertPointCommand => insertPointCommand ??= new RelayCommand(InsertPoint);
 
         private void ShapePoints_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

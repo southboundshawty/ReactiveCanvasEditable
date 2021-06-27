@@ -1,5 +1,8 @@
-﻿using EditableShapes.Commands;
+﻿using EditableShapes.Api;
+using EditableShapes.Commands;
+using EditableShapes.Hubs;
 using EditableShapes.Models;
+using EditableShapes.Models.Dto;
 
 using Emgu.CV;
 using Emgu.CV.CvEnum;
@@ -9,6 +12,7 @@ using Emgu.CV.Util;
 using Microsoft.Win32;
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -40,6 +44,7 @@ namespace EditableShapes.ViewModels
 
         private ICommand recognizeShapesCommand;
 
+
         public MainViewModel()
         {
             MyShapes = new ObservableCollection<MyShape>();
@@ -48,7 +53,83 @@ namespace EditableShapes.ViewModels
             KernelGauss = 5;
 
             MagicNumber = 0.0009;
+
+            _mapEntitiesHub = MapEntitiesHub.GetInstance();
+
+            _mapEntitiesHub.OnAreaReceived += _mapEntitiesHub_OnAreaReceived;
+
+            _mapEntitiesHub.OnAreaDeleted += _mapEntitiesHub_OnAreaDeleted;
+
+            Initialize();
         }
+
+        private void _mapEntitiesHub_OnAreaDeleted(AreaDto areaDto)
+        {
+            MyShape shape = MyShapes.FirstOrDefault(s => s.Id == areaDto.Id);
+
+            MyShapes.Remove(shape);
+        }
+
+        private void _mapEntitiesHub_OnAreaReceived(AreaDto areaDto)
+        {
+            MyShape myShape = new()
+            {
+                Id = areaDto.Id,
+                Name = areaDto.Name,
+                IsClosed = areaDto.IsClosed
+            };
+
+            MyShape firstShape = MyShapes.FirstOrDefault(s => s.Id == myShape.Id);
+
+            if (firstShape is null)
+            {
+                MyShapes.Add(myShape);
+            }
+            else
+            {
+                firstShape.IsClosed = myShape.IsClosed;
+            }
+        }
+
+        private async void Initialize()
+        {
+            using AreaApi areaApi = new();
+
+            IEnumerable<AreaDto> areas = await areaApi.ReadAsync();
+
+            MyShapes.Clear();
+
+            foreach (AreaDto area in areas)
+            {
+                MyShape myShape = new()
+                {
+                    Id = area.Id,
+                    Name = area.Name,
+                    IsClosed = area.IsClosed
+                };
+
+                using AreaPointApi areaPointApi = new();
+
+                IEnumerable<AreaPointDto> areaPoints = await areaPointApi.ReadAsync(area.Id);
+
+                if (areaPoints is null)
+                    continue;
+
+                foreach (AreaPointDto areaPoint in areaPoints)
+                {
+                    myShape.ShapePoints.Add(new ShapePoint()
+                    {
+                        Id = areaPoint.Id,
+                        AreaId = areaPoint.AreaId,
+                        Position = new Point(areaPoint.X, areaPoint.Y)
+                    });
+                }
+
+                MyShapes.Add(myShape);
+            }
+        }
+
+        private readonly MapEntitiesHub _mapEntitiesHub;
 
         public ImageSource Map
         {
@@ -64,7 +145,7 @@ namespace EditableShapes.ViewModels
 
         public ImageSource GrayMap
         {
-            get { return _grayMap; }
+            get => _grayMap;
             set
             {
                 _grayMap = value;
@@ -101,7 +182,7 @@ namespace EditableShapes.ViewModels
                     Map is not null &&
                     mapImage is not null);
 
-        private void OnMapPressed(object commandParameter)
+        private async void OnMapPressed(object commandParameter)
         {
             MouseButtonEventArgs e = (MouseButtonEventArgs)commandParameter;
 
@@ -109,21 +190,56 @@ namespace EditableShapes.ViewModels
             {
                 Point point = e.GetPosition(source);
 
-                if (SelectedShape is null)
+                if (e.LeftButton == MouseButtonState.Pressed)
                 {
-                    MyShapes.Add(new MyShape
+                    if (SelectedShape is null)
                     {
-                        Fill = Brushes.Bisque
-                    });
+                        using AreaApi areaApi = new();
 
-                    SelectedShape = MyShapes.FirstOrDefault();
+                        await areaApi.CreateAsync(new AreaDto()
+                        {
+                            Name = Guid.NewGuid().ToString()
+                        });
+
+                        SelectedShape = MyShapes.LastOrDefault();
+                    }
+
+                    if (SelectedShape is null)
+                        return;
+
+                    using AreaPointApi areaPointApi = new();
+
+                    await areaPointApi.CreateAsync(new AreaPointDto()
+                    {
+                        X = (int)point.X,
+                        Y = (int)point.Y,
+                        AreaId = SelectedShape.Id
+                    });
                 }
 
-                SelectedShape?.ShapePoints.Add(new ShapePoint
+                if (e.RightButton == MouseButtonState.Pressed)
                 {
-                    Fill = Brushes.DarkGreen,
-                    Position = point
-                });
+                    if (SelectedShape is not null)
+                    {
+                        //using AreaApi areaApi = new();
+
+                        //await areaApi.CreateAsync(new AreaDto()
+                        //{
+                        //    Name = SelectedShape.Name
+                        //});
+
+                        using AreaApi areaApi = new();
+
+                        await areaApi.UpdateAsync(new AreaDto()
+                        {
+                            Id = SelectedShape.Id,
+                            Name = SelectedShape.Name,
+                            IsClosed = true
+                        });
+
+                        SelectedShape = null;
+                    }
+                }
             }
         }
 
@@ -159,7 +275,7 @@ namespace EditableShapes.ViewModels
 
         public double GrayIntensity
         {
-            get { return _grayIntensity; }
+            get => _grayIntensity;
             set
             {
                 _grayIntensity = value;
@@ -167,13 +283,13 @@ namespace EditableShapes.ViewModels
 
                 PreviewGrayImage();
             }
-        } 
+        }
 
         private int _kernelGauss;
 
         public int KernelGauss
         {
-            get { return _kernelGauss; }
+            get => _kernelGauss;
             set
             {
                 _kernelGauss = value;
@@ -198,7 +314,7 @@ namespace EditableShapes.ViewModels
 
         public double MagicNumber
         {
-            get { return _magicNumber; }
+            get => _magicNumber;
             set
             {
                 _magicNumber = value;
