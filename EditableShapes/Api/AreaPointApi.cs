@@ -1,6 +1,6 @@
-﻿using System;
-using EditableShapes.Models.Dto;
+﻿using EditableShapes.Models.Dto;
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -19,7 +19,7 @@ namespace EditableShapes.Api
 
         public async Task<IEnumerable<AreaPointDto>> ReadAsync(int areaId)
         {
-            var api = API + $"?areaId={areaId}";
+            string api = API + $"?areaId={areaId}";
 
             return await base.ReadAsync(api);
         }
@@ -44,7 +44,7 @@ namespace EditableShapes.Api
                 {
                     base.Dispose(true);
                 }
-                
+
                 _disposedValue = true;
             }
         }

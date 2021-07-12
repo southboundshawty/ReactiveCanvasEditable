@@ -23,7 +23,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-
+using AutoMapper;
 using Brushes = System.Windows.Media.Brushes;
 using Point = System.Windows.Point;
 
@@ -221,13 +221,6 @@ namespace EditableShapes.ViewModels
                 {
                     if (SelectedShape is not null)
                     {
-                        //using AreaApi areaApi = new();
-
-                        //await areaApi.CreateAsync(new AreaDto()
-                        //{
-                        //    Name = SelectedShape.Name
-                        //});
-
                         using AreaApi areaApi = new();
 
                         await areaApi.UpdateAsync(new AreaDto()
@@ -346,24 +339,22 @@ namespace EditableShapes.ViewModels
                     IsClosed = true
                 };
 
-                using (VectorOfPoint contour = contours[i])
-                {
-                    using (VectorOfPoint approxContour = new())
-                    {
-                        CvInvoke.ApproxPolyDP(contour, approxContour, CvInvoke.ArcLength(contour, true) * MagicNumber, true);
-                        if (CvInvoke.ContourArea(approxContour) > 10000)
-                        {
-                            for (int j = 0; j < approxContour.Size; j++)
-                            {
-                                Point vertex = new(approxContour[j].X, approxContour[j].Y);
+                using VectorOfPoint contour = contours[i];
 
-                                s.ShapePoints.Add(new ShapePoint
-                                {
-                                    Fill = Brushes.Green,
-                                    Position = vertex
-                                });
-                            }
-                        }
+                using VectorOfPoint approxContour = new();
+
+                CvInvoke.ApproxPolyDP(contour, approxContour, CvInvoke.ArcLength(contour, true) * MagicNumber, true);
+                if (CvInvoke.ContourArea(approxContour) > 10000)
+                {
+                    for (int j = 0; j < approxContour.Size; j++)
+                    {
+                        Point vertex = new(approxContour[j].X, approxContour[j].Y);
+
+                        s.ShapePoints.Add(new ShapePoint
+                        {
+                            Fill = Brushes.Green,
+                            Position = vertex
+                        });
                     }
                 }
 
